@@ -1,0 +1,43 @@
+name: Build and Deploy Website
+
+# Trigger this action on push to the main branch or manually
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    # Step 1: Checkout the repository
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    # Step 2: Set up Node.js to build the frontend
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '21'
+
+    # Step 3: Install frontend dependencies and build the frontend
+    - name: Install dependencies and build frontend
+      working-directory: ./frontend  # Navigate to the frontend directory
+      run: |
+        npm install
+        npm run build
+
+    # Step 4: Move the build files to the backend/src/frontend folder
+    - name: Move build to backend/src/frontend
+      run: |
+        mkdir -p backend/src/frontend
+        cp -r ./frontend/dist/* ./backend/src/frontend/
+
+    # Step 5: Deploy the site using GitHub Pages
+    - name: Deploy to GitHub Pages
+      uses: peaceiris/actions-gh-pages@v4
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: ./backend/src/frontend
